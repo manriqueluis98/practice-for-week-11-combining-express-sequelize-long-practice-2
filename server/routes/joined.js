@@ -5,6 +5,7 @@ const router = express.Router();
 // Import models - DO NOT MODIFY
 const { Insect, Tree, InsectTree } = require('../db/models');
 const { Op } = require("sequelize");
+const tree = require('../db/models/tree');
 
 /**
  * PHASE 7 - Step A: List of all trees with insects that are near them
@@ -107,6 +108,94 @@ router.get('/insects-trees', async (req, res, next) => {
  *   - (Any others you think of)
  */
 // Your code here
+
+router.post('/associate-tree-insect', async (req, res, next) => {
+
+    const insectReq = req.body.insect
+    const treeReq = req.body.tree
+
+    let tree;
+    let insect;
+
+    let treeExists = false;
+    let insectExists = false;
+    
+    if(!treeReq){
+        next(new Error("Tree not provided in the request"))
+        return
+    }else{
+        if(treeReq.id){
+            tree = await Tree.findByPk(treeReq.id)
+    
+            if(!tree){
+                next(new Error("Tree not found"))
+                return
+            }else{
+                //Future association with tree
+                treeExists = true;
+            }
+        }else{
+            tree = await Tree.create({
+                tree: treeReq.name,
+                location: treeReq.location,
+                heightFt: treeReq.heightFt,
+                groundCircumferenceFt: treeReq.size
+            })
+        }
+    }
+
+    if(!insectReq){
+        next(new Error("Insect not provided in the request"))
+        return
+    }else{
+        if(insectReq.id){
+            insect = await Insect.findByPk(insectReq.id)
+
+            if(!insect){
+                next(new Error("Insect not found"))
+                return
+            }else{
+                insectExists = true;
+            }
+        }else{
+            insect = await Insect.create({
+                name: insectReq.name,
+                description: insectReq.description,
+                fact: insectReq.fact,
+                territory: insectReq.territory,
+                millimeters: insectReq.millimeters
+            })
+        }
+    }
+
+    //Verify Association if exists
+
+    if(insectExists && treeExists){
+        const nearTrees = await insect.getTrees()
+        for(let i = 0; i < nearTrees.length; i++){
+            const treeIdx = nearTrees[i]
+
+            if(treeIdx.id === tree.id){
+                next(new Error(`Association already exists between ${tree.tree} and ${insect.name}`))
+                return
+            }
+        }
+    }
+
+   
+        insect.addTrees([tree])
+        tree.addInsects([insect])
+
+
+    res.json({
+        status: "success",
+        message: "Successfully created association",
+        data: {
+            tree: tree,
+            insect: insect
+        }
+    })
+})
 
 // Export class - DO NOT MODIFY
 module.exports = router;

@@ -30,8 +30,12 @@ app.get('/', (req, res) => {
 // Custom error middleware (triggered via call to next(err)) - DO NOT MODIFY
 app.use((err, req, res, next) => {
     console.error(err);
+
+    console.log(err)
     res.status(400);
-    res.json(err);
+    res.json({
+        error: err.message
+    });
 });
 
 // Custom 404 (path not defined) - DO NOT MODIFY

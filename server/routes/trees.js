@@ -32,6 +32,7 @@ router.get('/', async (req, res, next) => {
     let trees = [];
 
     // Your code here
+    trees = await Tree.findAll()
 
     res.json(trees);
 });
