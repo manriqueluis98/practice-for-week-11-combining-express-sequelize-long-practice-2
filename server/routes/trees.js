@@ -7,11 +7,16 @@ const router = express.Router();
  */
 // Your code here
 
+const {Tree} = require('../db/models')
+
 /**
  * INTERMEDIATE BONUS PHASE 1 (OPTIONAL), Step A:
  *   Import Op to perform comparison operations in WHERE clauses
  **/
 // Your code here
+
+const Sequelize = require('sequelize')
+const Op = Sequelize.Op
 
 /**
  * BASIC PHASE 1, Step B - List of all trees in the database
@@ -189,6 +194,16 @@ router.put('/:id', async (req, res, next) => {
  */
 router.get('/search/:value', async (req, res, next) => {
     let trees = [];
+
+    trees = await Tree.findAll({
+        attributes: ['id', 'tree', 'heightFt'],
+        where: {
+            tree: {
+                [Op.like]: `%${req.params.value}%`
+
+            }
+        }
+    })
 
 
     res.json(trees);
